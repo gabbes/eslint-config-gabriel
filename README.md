@@ -8,6 +8,10 @@ Authentication service for some of my personal projects.
 - `yarn tsc -w` Watch and compile TypeScript files to JavaScript on changes.
 - `yarn nodemon build/index.js` Start live-reloading app.
 
+## Testing
+
+- `yarn jest` Runs tests.
+
 ## Production
 
 - `yarn` Install dependencies.
