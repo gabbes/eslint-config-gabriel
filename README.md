@@ -16,8 +16,8 @@ Authentication service for some of my personal projects.
 
 - `yarn` Install dependencies.
 - `yarn tsc` Compile TypeScript files to JavaScript.
-- `DATABASE_URL="postgres://localhost:5432/DATABASE" yarn --production` Remove development dependencies.
-- `node build/index.js` Start app.
+- `yarn --production` Remove development dependencies.
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" node build/index.js` Start app.
 
 ## License
 
