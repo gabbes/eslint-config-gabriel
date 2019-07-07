@@ -6,17 +6,17 @@ Authentication service for some of my personal projects.
 
 - `yarn` Install dependencies.
 - `yarn tsc -w` Watch and compile TypeScript files to JavaScript on changes.
-- `yarn nodemon build/index.js` Start live-reloading app.
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" NODE_ENV="development" yarn nodemon build/index.js` Start live-reloading app.
 
 ## Testing
 
-- `yarn jest` Runs tests.
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" yarn jest --verbose` Runs tests.
 
 ## Production
 
 - `yarn` Install dependencies.
 - `yarn tsc` Compile TypeScript files to JavaScript.
-- `yarn --production` Remove development dependencies.
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" yarn --production` Remove development dependencies.
 - `node build/index.js` Start app.
 
 ## License
