@@ -10,18 +10,22 @@ beforeAll(async (done) => {
 });
 
 describe('server', () => {
-  it('get /api/v1 responds with 200', async (done) => {
-    await request(app.callback())
-      .get('/api/v1')
-      .expect(200);
-
-    done();
-  });
-
   it('other routes responds with 401', async (done) => {
     await request(app.callback())
       .get('/')
       .expect(401);
+
+    done();
+  });
+
+  it('/api/v1 post request inserts account', async (done) => {
+    await request(app.callback())
+      .post('/api/v1')
+      .send({
+        username: '_TestUser1_',
+        password: 'password1',
+      })
+      .expect(201);
 
     done();
   });
