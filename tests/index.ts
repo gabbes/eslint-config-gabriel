@@ -4,7 +4,15 @@ import * as request from 'supertest';
 import { app } from '../src/app';
 import { pool } from '../src/database/pool';
 
+async function cleanUp(): Promise<void> {
+  await pool.query(`
+    DELETE FROM account
+    WHERE username = '_TestUser1_';
+  `);
+}
+
 beforeAll(async (done) => {
+  await cleanUp();
   await pgup(pool, { directory: path.resolve(__dirname, '../sql') });
   done();
 });
@@ -32,6 +40,7 @@ describe('server', () => {
 });
 
 afterAll(async (done) => {
+  await cleanUp();
   await pool.end();
   done();
 });
