@@ -12,8 +12,8 @@ async function cleanUp(): Promise<void> {
 }
 
 beforeAll(async (done) => {
-  await cleanUp();
   await pgup(pool, { directory: path.resolve(__dirname, '../sql') });
+  await cleanUp();
   done();
 });
 
