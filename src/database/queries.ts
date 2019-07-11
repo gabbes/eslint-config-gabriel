@@ -1,3 +1,4 @@
+import * as md5 from 'md5';
 import { pool } from './pool';
 import * as types from '../types';
 
@@ -27,7 +28,7 @@ export async function insertAccount(
       created
     ) VALUES (
       '${args.username}',
-      '${args.password}',
+      '${md5(args.password)}',
       ${args.email ? `'${args.email}',` : ''}
       NOW()
     )
