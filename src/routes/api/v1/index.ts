@@ -16,10 +16,26 @@ router.post(baseRoute, async (ctx) => {
     return;
   }
 
+  if (
+    username.length < 2 ||
+    username.length > 18 ||
+    !username.match(/^[a-zA-Z][a-zA-Z0-9_]*$/)
+  ) {
+    ctx.status = 400;
+    ctx.body = Messages.INPUT_INVALID_USERNAME;
+    return;
+  }
+
+  if (password.length < 6) {
+    ctx.status = 400;
+    ctx.body = Messages.INPUT_INVALID_PASSWORD;
+    return;
+  }
+
   if (email) {
     if (!email.match(/\S+@\S+\.\S+/)) {
       ctx.status = 400;
-      ctx.body = Messages.INVALID_EMAIL_FORMAT;
+      ctx.body = Messages.INPUT_INVALID_EMAIL;
       return;
     }
 
