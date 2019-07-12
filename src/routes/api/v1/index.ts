@@ -32,7 +32,7 @@ router.post(baseRoute, async (ctx) => {
 
   if (await queries.accountWithColumnValueExists('username', username)) {
     ctx.status = 409;
-    ctx.body = Messages.DUPLICATE_EMAIL;
+    ctx.body = Messages.DUPLICATE_USERNAME;
     return;
   }
 
