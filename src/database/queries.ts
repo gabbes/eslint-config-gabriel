@@ -1,6 +1,7 @@
 import * as md5 from 'md5';
-import { pool } from './pool';
+
 import * as types from '../types';
+import { pool } from './pool';
 
 export async function accountWithColumnValueExists(
   column: string,

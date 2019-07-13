@@ -1,7 +1,8 @@
 import * as Router from 'koa-router';
+
+import { queries } from '../../../database';
 import { Messages } from '../../../messages';
 import { AccountInput } from '../../../types';
-import { queries } from '../../../database';
 
 export const router = new Router();
 

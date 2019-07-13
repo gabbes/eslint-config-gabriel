@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { pgup } from 'pgup';
+
 import { pool } from './pool';
 
 export async function databaseMigration(): Promise<void> {

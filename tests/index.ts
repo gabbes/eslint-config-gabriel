@@ -1,7 +1,8 @@
-import * as path from 'path';
 import * as md5 from 'md5';
+import * as path from 'path';
 import { pgup } from 'pgup';
 import * as request from 'supertest';
+
 import { app } from '../src/app';
 import { pool } from '../src/database/pool';
 import { Messages } from '../src/messages';
