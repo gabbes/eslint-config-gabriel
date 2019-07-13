@@ -95,7 +95,7 @@ describe('server', () => {
         .expect(400, done);
     });
 
-    it('rejects invalid username(too long)', (done) => {
+    it('rejects invalid username (too long)', (done) => {
       request(app.callback())
         .post('/api/v1')
         .send({
