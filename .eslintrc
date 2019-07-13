@@ -9,14 +9,17 @@
     "ecmaVersion": 2019,
     "sourceType": "module"
   },
-  "plugins": ["import"],
+  "plugins": ["import", "simple-import-sort"],
   "rules": {
     "@typescript-eslint/explicit-function-return-type": [
       "warn",
       { "allowExpressions": true }
     ],
     "import/first": "warn",
+    "import/newline-after-import": "warn",
     "import/no-cycle": "error",
-    "import/no-default-export": "warn"
+    "import/no-default-export": "warn",
+    "import/no-duplicates": "warn",
+    "simple-import-sort/sort": "warn"
   }
 }
