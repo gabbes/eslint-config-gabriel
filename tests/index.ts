@@ -13,7 +13,12 @@ async function cleanUp(): Promise<void> {
     WHERE username IN (
       'Test_User1',
       'Test_User2',
-      'Test_User3'
+      'Test_User3',
+      'a',
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      'user-name',
+      '_userName',
+      '1userName'
     );
   `);
 }
