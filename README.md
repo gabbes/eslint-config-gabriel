@@ -8,6 +8,10 @@ A little authentication service for some of my personal projects.
 - `yarn tsc -w`
 - `DATABASE_URL="postgres://localhost:5432/DATABASE" NODE_ENV="development" yarn nodemon build/index.js`
 
+## Test
+
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" NODE_ENV="development" yarn ts-mocha **/*.spec.ts --exit`
+
 ## Production
 
 - `yarn`

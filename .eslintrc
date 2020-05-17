@@ -5,6 +5,7 @@
     "prettier/@typescript-eslint"
   ],
   "env": {
+    "mocha": true,
     "node": true
   },
   "ignorePatterns": ["*.js"],
