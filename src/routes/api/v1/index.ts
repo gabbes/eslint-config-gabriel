@@ -60,17 +60,62 @@ router.post(`${baseRoute}/register`, async (ctx) => {
     return;
   }
 
-  if (!res.error) {
-    ctx.status = 500;
-    ctx.body = "Internal server error";
+  if (res.error) {
+    if (res.error === "accounts_username_key") {
+      ctx.status = 409;
+      ctx.body = "Username taken";
+    } else if (res.error === "accounts_email_key") {
+      ctx.status = 409;
+      ctx.body = "Email taken";
+    }
+
     return;
   }
 
-  if (res.error === "accounts_username_key") {
-    ctx.status = 409;
-    ctx.body = "Username taken";
-  } else if (res.error === "accounts_email_key") {
-    ctx.status = 409;
-    ctx.body = "Email taken";
+  ctx.status = 500;
+  ctx.body = "Internal server error";
+});
+
+interface AuthenticateBody {
+  username?: string;
+  password?: string;
+}
+
+router.get(`${baseRoute}/authenticate`, async (ctx) => {
+  const body: AuthenticateBody = ctx.request.body;
+
+  if (!body.username) {
+    ctx.status = 400;
+    ctx.body = "Username required";
+    return;
   }
+
+  if (!body.password) {
+    ctx.status = 400;
+    ctx.body = "Password required";
+    return;
+  }
+
+  const res = await queries.authenticateAccount({
+    username: body.username,
+    password: body.password,
+  });
+
+  if (res.ok) {
+    ctx.status = 200;
+    ctx.body = JSON.stringify(res.data);
+    return;
+  }
+
+  if (res.error) {
+    if (res.error === "not_found") {
+      ctx.status = 401;
+      ctx.body = "Not authenticated";
+    }
+
+    return;
+  }
+
+  ctx.status = 500;
+  ctx.body = "Internal server error";
 });

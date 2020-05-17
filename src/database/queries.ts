@@ -55,3 +55,36 @@ export async function insertAccount(args: {
     };
   }
 }
+
+export async function authenticateAccount(args: {
+  username: string;
+  password: string;
+}): Promise<Query<Account>> {
+  try {
+    const res = await pool.query<Account>(`
+      SELECT id, username, email
+      FROM accounts
+      WHERE username = '${args.username}'
+      AND password = '${md5(args.password)}';
+    `);
+
+    if (!res.rowCount) {
+      return {
+        data: null,
+        error: "not_found",
+        ok: false,
+      };
+    }
+
+    return {
+      data: res.rows[0],
+      error: null,
+      ok: true,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      ok: false,
+    };
+  }
+}
