@@ -6,14 +6,14 @@ A little authentication service for some of my personal projects.
 
 - `yarn`
 - `yarn tsc -w`
-- `yarn nodemon build/index.js`
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" NODE_ENV="development" yarn nodemon build/index.js`
 
 ## Production
 
 - `yarn`
 - `yarn tsc`
 - `yarn --production`
-- `node build/index.js`
+- `DATABASE_URL="postgres://localhost:5432/DATABASE" node build/index.js`
 
 ## License
 

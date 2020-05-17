@@ -1,9 +1,19 @@
+import * as path from "path";
+import { migratorosaurus } from "migratorosaurus";
+import { pool } from "./database";
 import { app } from "./app";
 
-const env = process.env.NODE_ENV || "production";
-const host = process.env.HOST || "0.0.0.0";
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+(async () => {
+  const env = process.env.NODE_ENV || "production";
+  const host = process.env.HOST || "0.0.0.0";
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
-app.listen(port, host, () => {
-  console.log(`🚀  Running ${env} build @ ${host}:${port}!`);
-});
+  await migratorosaurus(pool, {
+    directory: path.resolve("migrations"),
+    log: console.log,
+  });
+
+  app.listen(port, host, () => {
+    console.log(`🚀  Running ${env} build @ ${host}:${port}`);
+  });
+})();
