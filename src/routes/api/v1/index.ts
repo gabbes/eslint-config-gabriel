@@ -55,7 +55,7 @@ router.post(`${baseRoute}/register`, async (ctx) => {
   });
 
   if (res.ok) {
-    ctx.status = 200;
+    ctx.status = 201;
     ctx.body = JSON.stringify(res.data);
     return;
   }
