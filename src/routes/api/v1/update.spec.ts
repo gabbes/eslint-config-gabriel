@@ -169,7 +169,115 @@ describe("api/v1/account/update", () => {
     assert.equal(res.text, "Invalid input email");
   });
 
-  it("updates account", async () => {
+  it("updates account username", async () => {
+    await request(app.callback())
+      .post("/api/v1/register")
+      .send({ username: "gabriel", password: "password" })
+      .expect(201);
+
+    const res = await request(app.callback())
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ username: "gabbe" })
+      .expect(200);
+
+    const json = JSON.parse(res.text);
+
+    assert.equal(Object.keys(json).length, 3);
+    assert.equal(typeof json.id, "string");
+    assert.equal(json.id.length, 36);
+    assert.equal(json.username, "gabbe");
+    assert.equal(json.email, null);
+
+    const { rows } = await pool.query(`
+      SELECT * FROM accounts WHERE username = 'gabbe';
+    `);
+
+    assert.equal(rows.length, 1);
+    assert.equal(Object.keys(rows[0]).length, 5);
+    assert.equal(rows[0].id, json.id);
+    assert.equal(rows[0].username, json.username);
+    assert.notEqual(rows[0].password, "password");
+    assert.equal(rows[0].password, md5("password"));
+    assert.equal(rows[0].email, null);
+    assert.ok(rows[0].created instanceof Date);
+
+    const { rowCount } = await pool.query(`
+      SELECT * FROM accounts WHERE username = 'gabriel';
+    `);
+
+    assert.equal(rowCount, 0);
+  });
+
+  it("updates account password", async () => {
+    await request(app.callback())
+      .post("/api/v1/register")
+      .send({ username: "gabriel", password: "password" })
+      .expect(201);
+
+    const res = await request(app.callback())
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ password: "drowssap" })
+      .expect(200);
+
+    const json = JSON.parse(res.text);
+
+    assert.equal(Object.keys(json).length, 3);
+    assert.equal(typeof json.id, "string");
+    assert.equal(json.id.length, 36);
+    assert.equal(json.username, "gabriel");
+    assert.equal(json.email, null);
+
+    const { rows } = await pool.query(`
+      SELECT * FROM accounts WHERE username = 'gabriel';
+    `);
+
+    assert.equal(rows.length, 1);
+    assert.equal(Object.keys(rows[0]).length, 5);
+    assert.equal(rows[0].id, json.id);
+    assert.equal(rows[0].username, json.username);
+    assert.notEqual(rows[0].password, "drowssap");
+    assert.equal(rows[0].password, md5("drowssap"));
+    assert.equal(rows[0].email, null);
+    assert.ok(rows[0].created instanceof Date);
+  });
+
+  it("updates account email", async () => {
+    await request(app.callback())
+      .post("/api/v1/register")
+      .send({ username: "gabriel", password: "password" })
+      .expect(201);
+
+    const res = await request(app.callback())
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ email: "gabriel@mail.com" })
+      .expect(200);
+
+    const json = JSON.parse(res.text);
+
+    assert.equal(Object.keys(json).length, 3);
+    assert.equal(typeof json.id, "string");
+    assert.equal(json.id.length, 36);
+    assert.equal(json.username, "gabriel");
+    assert.equal(json.email, "gabriel@mail.com");
+
+    const { rows } = await pool.query(`
+      SELECT * FROM accounts WHERE username = 'gabriel';
+    `);
+
+    assert.equal(rows.length, 1);
+    assert.equal(Object.keys(rows[0]).length, 5);
+    assert.equal(rows[0].id, json.id);
+    assert.equal(rows[0].username, json.username);
+    assert.notEqual(rows[0].password, "password");
+    assert.equal(rows[0].password, md5("password"));
+    assert.equal(rows[0].email, "gabriel@mail.com");
+    assert.ok(rows[0].created instanceof Date);
+  });
+
+  it("updates account all fields", async () => {
     await request(app.callback())
       .post("/api/v1/register")
       .send({ username: "gabriel", password: "password" })
@@ -201,7 +309,7 @@ describe("api/v1/account/update", () => {
     assert.equal(Object.keys(rows[0]).length, 5);
     assert.equal(rows[0].id, json.id);
     assert.equal(rows[0].username, json.username);
-    assert.notEqual(rows[0].password, json.password);
+    assert.notEqual(rows[0].password, "password");
     assert.equal(rows[0].password, md5("dorwssap"));
     assert.equal(rows[0].email, "gabbe@mail.com");
     assert.ok(rows[0].created instanceof Date);
@@ -249,7 +357,7 @@ describe("api/v1/account/update", () => {
     assert.equal(Object.keys(rows[0]).length, 5);
     assert.equal(rows[0].id, json.id);
     assert.equal(rows[0].username, json.username);
-    assert.notEqual(rows[0].password, json.password);
+    assert.notEqual(rows[0].password, "password");
     assert.equal(rows[0].password, md5("password"));
     assert.equal(rows[0].email, "pelle@mail.com");
     assert.ok(rows[0].created instanceof Date);
