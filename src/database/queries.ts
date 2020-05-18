@@ -88,3 +88,50 @@ export async function authenticateAccount(args: {
     };
   }
 }
+
+export async function updateAccount(args: {
+  username: string;
+  password: string;
+  input: {
+    username?: string;
+    password?: string;
+    email?: null | string;
+  };
+}): Promise<Query<Account>> {
+  try {
+    if (args.input.password) {
+      args.input.password = md5(args.input.password);
+    }
+
+    const setValues = Object.entries(args.input)
+      .map(([key, value]) => `${key} = '${value}'`)
+      .join(",");
+
+    const res = await pool.query<Account>(`
+      UPDATE accounts
+      SET ${setValues}
+      WHERE username = '${args.username}'
+      AND password = '${md5(args.password)}'
+      RETURNING id, username, email;
+    `);
+
+    if (!res.rowCount) {
+      return {
+        data: null,
+        ok: false,
+      };
+    }
+
+    return {
+      data: res.rows[0],
+      error: null,
+      ok: true,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      error: error.constraint as string,
+      ok: false,
+    };
+  }
+}
