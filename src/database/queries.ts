@@ -135,3 +135,27 @@ export async function updateAccount(args: {
     };
   }
 }
+
+export async function deleteAccount(args: {
+  username: string;
+  password: string;
+}): Promise<Query<null>> {
+  try {
+    await pool.query<Account>(`
+      DELETE FROM accounts
+      WHERE username = '${args.username}'
+      AND password = '${md5(args.password)}';
+    `);
+
+    return {
+      data: null,
+      error: null,
+      ok: true,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      ok: false,
+    };
+  }
+}
