@@ -3,7 +3,7 @@ import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
 
-describe("api/v1/account/authenticate", () => {
+describe("api/v1/account", () => {
   beforeEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
@@ -14,7 +14,7 @@ describe("api/v1/account/authenticate", () => {
 
   it("requires username", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account/authenticate")
+      .get("/api/v1/account")
       .auth("", "")
       .expect(400);
 
@@ -23,7 +23,7 @@ describe("api/v1/account/authenticate", () => {
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account/authenticate")
+      .get("/api/v1/account")
       .auth("x", "")
       .expect(400);
 
@@ -32,7 +32,7 @@ describe("api/v1/account/authenticate", () => {
 
   it("rejects invalid", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account/authenticate")
+      .get("/api/v1/account")
       .auth("x", "x")
       .expect(401);
 
@@ -46,7 +46,7 @@ describe("api/v1/account/authenticate", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .get("/api/v1/account/authenticate")
+      .get("/api/v1/account")
       .auth("gabriel", "password")
       .expect(200);
 

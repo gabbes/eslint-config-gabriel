@@ -1,7 +1,7 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../database";
 
-export async function authenticate(ctx: ParameterizedContext): Promise<void> {
+export async function account(ctx: ParameterizedContext): Promise<void> {
   const res = await queries.getAccount({ id: ctx.userId });
 
   if (res.ok) {
