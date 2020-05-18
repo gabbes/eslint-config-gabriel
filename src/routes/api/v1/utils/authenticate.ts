@@ -33,7 +33,7 @@ export async function authenticate(
   });
 
   if (res.ok) {
-    ctx.userId = res.data.id;
+    ctx.state.accountId = res.data.id;
     return await next();
   }
 

@@ -1,8 +1,10 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../database";
 
-export async function account(ctx: ParameterizedContext): Promise<void> {
-  const res = await queries.getAccount({ id: ctx.userId });
+export async function account(
+  ctx: ParameterizedContext<{ accountId: string }>
+): Promise<void> {
+  const res = await queries.getAccount({ id: ctx.state.accountId });
 
   if (res.ok) {
     ctx.status = 200;

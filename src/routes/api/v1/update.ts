@@ -7,7 +7,9 @@ interface UpdateBody {
   email?: null | string;
 }
 
-export async function update(ctx: ParameterizedContext): Promise<void> {
+export async function update(
+  ctx: ParameterizedContext<{ accountId: string }>
+): Promise<void> {
   const body: UpdateBody = ctx.request.body;
 
   if (!body || (!body.username && !body.password && !body.email)) {
@@ -40,7 +42,7 @@ export async function update(ctx: ParameterizedContext): Promise<void> {
   }
 
   const updateRes = await queries.updateAccount({
-    id: ctx.userId,
+    id: ctx.state.accountId,
     input: {
       username: body.username,
       password: body.password,
