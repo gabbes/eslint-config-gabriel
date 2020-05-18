@@ -1,15 +1,17 @@
 import * as assert from "assert";
 import * as md5 from "md5";
+import { migratorosaurus } from "migratorosaurus";
 import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
 
 describe("api/v1/account/update", () => {
-  beforeEach(async () => {
-    await pool.query("DELETE FROM accounts;");
+  before(async () => {
+    await migratorosaurus(pool, { target: "0-create.sql" });
+    await migratorosaurus(pool);
   });
 
-  after(async () => {
+  afterEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
 
