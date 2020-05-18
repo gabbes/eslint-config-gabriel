@@ -4,7 +4,7 @@ import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
 
-describe("api/v1/update", () => {
+describe("api/v1/account/update", () => {
   beforeEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
@@ -15,8 +15,8 @@ describe("api/v1/update", () => {
 
   it("requires username", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({})
+      .post("/api/v1/account/update")
+      .auth("", "")
       .expect(400);
 
     assert.equal(res.text, "Username required");
@@ -24,8 +24,9 @@ describe("api/v1/update", () => {
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/update")
+      .post("/api/v1/account/update")
       .send({ username: "gabriel" })
+      .auth("x", "")
       .expect(400);
 
     assert.equal(res.text, "Password required");
@@ -33,11 +34,11 @@ describe("api/v1/update", () => {
 
   it("rejects invalid username/password", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({ username: "x", password: "x" })
+      .post("/api/v1/account/update")
+      .auth("x", "x")
       .expect(401);
 
-    assert.equal(res.text, "Invalid credentials");
+    assert.equal(res.text, "Not authenticated");
   });
 
   it("rejects no input", async () => {
@@ -47,8 +48,8 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({ username: "gabriel", password: "password" })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
       .expect(400);
 
     assert.equal(res.text, "Invalid input");
@@ -61,8 +62,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({ username: "gabriel", password: "password", input: {} })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({})
       .expect(400);
 
     assert.equal(res.text, "Invalid input");
@@ -75,12 +77,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { favoriteFood: "pancakes" },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ favoriteFood: "pancakes" })
       .expect(400);
 
     assert.equal(res.text, "Invalid input");
@@ -93,12 +92,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { password: "xx" },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ password: "xx" })
       .expect(400);
 
     assert.equal(res.text, "Invalid input password");
@@ -111,12 +107,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { username: "x" },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ username: "x" })
       .expect(400);
 
     assert.equal(res.text, "Invalid input username");
@@ -129,12 +122,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { username: "xxxxx".repeat(19) },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ username: "xxxxx".repeat(19) })
       .expect(400);
 
     assert.equal(res.text, "Invalid input username");
@@ -147,12 +137,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { username: "gabriäl" },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ username: "gabriäl" })
       .expect(400);
 
     assert.equal(res.text, "Invalid input username");
@@ -165,12 +152,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "gabriel",
-        password: "password",
-        input: { email: "x@x" },
-      })
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
+      .send({ email: "x@x" })
       .expect(400);
 
     assert.equal(res.text, "Invalid input email");
@@ -183,15 +167,12 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
+      .post("/api/v1/account/update")
+      .auth("gabriel", "password")
       .send({
-        username: "gabriel",
-        password: "password",
-        input: {
-          username: "gabbe",
-          password: "dorwssap",
-          email: "gabbe@mail.com",
-        },
+        username: "gabbe",
+        password: "dorwssap",
+        email: "gabbe@mail.com",
       })
       .expect(200);
 
@@ -234,15 +215,12 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
+      .post("/api/v1/account/update")
+      .auth("pelle", "password")
       .send({
         username: "pelle",
         password: "password",
-        input: {
-          username: "pelle",
-          password: "password",
-          email: "pelle@mail.com",
-        },
+        email: "pelle@mail.com",
       })
       .expect(200);
 
@@ -280,14 +258,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "franz",
-        password: "password",
-        input: {
-          username: "david",
-        },
-      })
+      .post("/api/v1/account/update")
+      .auth("franz", "password")
+      .send({ username: "david" })
       .expect(409);
 
     assert.equal(res.text, "Username taken");
@@ -312,14 +285,9 @@ describe("api/v1/update", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/update")
-      .send({
-        username: "lars",
-        password: "password",
-        input: {
-          email: "annika@mail.com",
-        },
-      })
+      .post("/api/v1/account/update")
+      .auth("lars", "password")
+      .send({ email: "annika@mail.com" })
       .expect(409);
 
     assert.equal(res.text, "Email taken");

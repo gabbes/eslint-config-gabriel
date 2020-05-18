@@ -59,10 +59,10 @@ export async function insertAccount(args: {
 export async function authenticateAccount(args: {
   username: string;
   password: string;
-}): Promise<Query<Account>> {
+}): Promise<Query<{ id: string }>> {
   try {
-    const res = await pool.query<Account>(`
-      SELECT id, username, email
+    const res = await pool.query<{ id: string }>(`
+      SELECT id
       FROM accounts
       WHERE username = '${args.username}'
       AND password = '${md5(args.password)}';
@@ -89,9 +89,39 @@ export async function authenticateAccount(args: {
   }
 }
 
+export async function getAccount(args: {
+  id: string;
+}): Promise<Query<Account>> {
+  try {
+    const res = await pool.query<Account>(`
+      SELECT id, username, email
+      FROM accounts
+      WHERE id = '${args.id}';
+    `);
+
+    if (!res.rowCount) {
+      return {
+        data: null,
+        error: "not_found",
+        ok: false,
+      };
+    }
+
+    return {
+      data: res.rows[0],
+      error: null,
+      ok: true,
+    };
+  } catch (error) {
+    return {
+      data: null,
+      ok: false,
+    };
+  }
+}
+
 export async function updateAccount(args: {
-  username: string;
-  password: string;
+  id: string;
   input: {
     username?: string;
     password?: string;
@@ -110,8 +140,7 @@ export async function updateAccount(args: {
     const res = await pool.query<Account>(`
       UPDATE accounts
       SET ${setValues}
-      WHERE username = '${args.username}'
-      AND password = '${md5(args.password)}'
+      WHERE id = '${args.id}'
       RETURNING id, username, email;
     `);
 
@@ -137,14 +166,12 @@ export async function updateAccount(args: {
 }
 
 export async function deleteAccount(args: {
-  username: string;
-  password: string;
+  id: string;
 }): Promise<Query<null>> {
   try {
     await pool.query<Account>(`
       DELETE FROM accounts
-      WHERE username = '${args.username}'
-      AND password = '${md5(args.password)}';
+      WHERE id = '${args.id}';
     `);
 
     return {

@@ -3,7 +3,7 @@ import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
 
-describe("api/v1/remove", () => {
+describe("api/v1/account/remove", () => {
   beforeEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
@@ -14,8 +14,8 @@ describe("api/v1/remove", () => {
 
   it("requires username", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/remove")
-      .send({})
+      .post("/api/v1/account/remove")
+      .auth("", "")
       .expect(400);
 
     assert.equal(res.text, "Username required");
@@ -23,8 +23,8 @@ describe("api/v1/remove", () => {
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/remove")
-      .send({ username: "x" })
+      .post("/api/v1/account/remove")
+      .auth("x", "")
       .expect(400);
 
     assert.equal(res.text, "Password required");
@@ -32,8 +32,8 @@ describe("api/v1/remove", () => {
 
   it("rejects invalid", async () => {
     await request(app.callback())
-      .post("/api/v1/remove")
-      .send({ username: "x", password: "x" })
+      .post("/api/v1/account/remove")
+      .auth("x", "x")
       .expect(401);
   });
 
@@ -44,8 +44,8 @@ describe("api/v1/remove", () => {
       .expect(201);
 
     await request(app.callback())
-      .post("/api/v1/remove")
-      .send({ username: "gabriel", password: "password" })
+      .post("/api/v1/account/remove")
+      .auth("gabriel", "password")
       .expect(204);
 
     const { rowCount } = await pool.query(`

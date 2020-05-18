@@ -1,4 +1,4 @@
-import * as Koa from "koa";
+import type { ParameterizedContext } from "koa";
 import { queries } from "../../../database";
 
 interface RegisterBody {
@@ -7,7 +7,7 @@ interface RegisterBody {
   email?: string;
 }
 
-export async function register(ctx: Koa.Context): Promise<void> {
+export async function register(ctx: ParameterizedContext): Promise<void> {
   const body: RegisterBody = ctx.request.body;
 
   if (!body.username) {

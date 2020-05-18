@@ -3,7 +3,7 @@ import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
 
-describe("api/v1/authenticate", () => {
+describe("api/v1/account/authenticate", () => {
   beforeEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
@@ -14,8 +14,8 @@ describe("api/v1/authenticate", () => {
 
   it("requires username", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/authenticate")
-      .send({})
+      .get("/api/v1/account/authenticate")
+      .auth("", "")
       .expect(400);
 
     assert.equal(res.text, "Username required");
@@ -23,8 +23,8 @@ describe("api/v1/authenticate", () => {
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/authenticate")
-      .send({ username: "x" })
+      .get("/api/v1/account/authenticate")
+      .auth("x", "")
       .expect(400);
 
     assert.equal(res.text, "Password required");
@@ -32,8 +32,8 @@ describe("api/v1/authenticate", () => {
 
   it("rejects invalid", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/authenticate")
-      .send({ username: "x", password: "x" })
+      .get("/api/v1/account/authenticate")
+      .auth("x", "x")
       .expect(401);
 
     assert.equal(res.text, "Not authenticated");
@@ -46,8 +46,8 @@ describe("api/v1/authenticate", () => {
       .expect(201);
 
     const res = await request(app.callback())
-      .get("/api/v1/authenticate")
-      .send({ username: "gabriel", password: "password" })
+      .get("/api/v1/account/authenticate")
+      .auth("gabriel", "password")
       .expect(200);
 
     const json = JSON.parse(res.text);
