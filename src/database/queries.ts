@@ -134,6 +134,7 @@ export async function updateAccount(args: {
     }
 
     const setValues = Object.entries(args.input)
+      .filter((entries) => entries[1] !== undefined)
       .map(([key, value]) => `${key} = '${value}'`)
       .join(",");
 
