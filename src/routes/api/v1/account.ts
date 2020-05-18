@@ -14,8 +14,8 @@ export async function account(
 
   if (res.error) {
     if (res.error === "not_found") {
-      ctx.status = 401;
-      ctx.body = "Not authenticated";
+      ctx.status = 400;
+      ctx.body = "Account not found";
     }
 
     return;

@@ -15,23 +15,30 @@ describe("api/v1/account/update", () => {
     await pool.query("DELETE FROM accounts;");
   });
 
+  it("requires basic auth", async () => {
+    const res = await request(app.callback())
+      .get("/api/v1/account")
+      .expect(401);
+
+    assert.equal(res.text, "Basic authentication required");
+  });
+
   it("requires username", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/account/update")
-      .auth("", "")
-      .expect(400);
+      .get("/api/v1/account")
+      .auth("", "x")
+      .expect(401);
 
-    assert.equal(res.text, "Username required");
+    assert.equal(res.text, "Basic authentication username required");
   });
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/account/update")
-      .send({ username: "gabriel" })
+      .get("/api/v1/account")
       .auth("x", "")
-      .expect(400);
+      .expect(401);
 
-    assert.equal(res.text, "Password required");
+    assert.equal(res.text, "Basic authentication password required");
   });
 
   it("rejects invalid username/password", async () => {
@@ -40,7 +47,7 @@ describe("api/v1/account/update", () => {
       .auth("x", "x")
       .expect(401);
 
-    assert.equal(res.text, "Not authenticated");
+    assert.equal(res.text, "Unauthorized");
   });
 
   it("rejects no input", async () => {

@@ -13,22 +13,31 @@ describe("api/v1/account/remove", () => {
   afterEach(async () => {
     await pool.query("DELETE FROM accounts;");
   });
+
+  it("requires basic auth", async () => {
+    const res = await request(app.callback())
+      .get("/api/v1/account")
+      .expect(401);
+
+    assert.equal(res.text, "Basic authentication required");
+  });
+
   it("requires username", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/account/remove")
-      .auth("", "")
-      .expect(400);
+      .get("/api/v1/account")
+      .auth("", "x")
+      .expect(401);
 
-    assert.equal(res.text, "Username required");
+    assert.equal(res.text, "Basic authentication username required");
   });
 
   it("requires password", async () => {
     const res = await request(app.callback())
-      .post("/api/v1/account/remove")
+      .get("/api/v1/account")
       .auth("x", "")
-      .expect(400);
+      .expect(401);
 
-    assert.equal(res.text, "Password required");
+    assert.equal(res.text, "Basic authentication password required");
   });
 
   it("rejects invalid", async () => {

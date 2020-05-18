@@ -9,21 +9,21 @@ export async function authenticate(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = basicAuth(ctx as any);
 
-  if (!user) {
-    ctx.status = 400;
-    ctx.body = "Username required";
+  if (!user || (!user.name && !user.pass)) {
+    ctx.status = 401;
+    ctx.body = "Basic authentication required";
     return;
   }
 
   if (!user.name) {
-    ctx.status = 400;
-    ctx.body = "Username required";
+    ctx.status = 401;
+    ctx.body = "Basic authentication username required";
     return;
   }
 
   if (!user.pass) {
-    ctx.status = 400;
-    ctx.body = "Password required";
+    ctx.status = 401;
+    ctx.body = "Basic authentication password required";
     return;
   }
 
@@ -40,10 +40,9 @@ export async function authenticate(
   if (res.error) {
     if (res.error === "not_found") {
       ctx.status = 401;
-      ctx.body = "Not authenticated";
+      ctx.body = "Unauthorized";
+      return;
     }
-
-    return;
   }
 
   ctx.status = 500;
