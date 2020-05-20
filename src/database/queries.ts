@@ -135,7 +135,9 @@ export async function updateAccount(args: {
 
     const setValues = Object.entries(args.input)
       .filter((entries) => entries[1] !== undefined)
-      .map(([key, value]) => `${key} = '${value}'`)
+      .map(([key, value]) => {
+        return value === null ? `${key} = NULL` : `${key} = '${value}'`;
+      })
       .join(",");
 
     const res = await pool.query<Account>(`

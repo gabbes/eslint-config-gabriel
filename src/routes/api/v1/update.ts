@@ -12,7 +12,7 @@ export async function update(
 ): Promise<void> {
   const body: UpdateBody = ctx.request.body;
 
-  if (!body || (!body.username && !body.password && !body.email)) {
+  if (!body || (!body.username && !body.password && body.email === undefined)) {
     ctx.status = 400;
     ctx.body = "Invalid input";
     return;
