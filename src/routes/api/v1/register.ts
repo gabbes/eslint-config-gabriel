@@ -10,6 +10,12 @@ interface RegisterBody {
 export async function register(ctx: ParameterizedContext): Promise<void> {
   const body: RegisterBody = ctx.request.body;
 
+  if (!body.username && !body.password) {
+    ctx.status = 400;
+    ctx.body = "Username and password required";
+    return;
+  }
+
   if (!body.username) {
     ctx.status = 400;
     ctx.body = "Username required";
@@ -60,12 +66,12 @@ export async function register(ctx: ParameterizedContext): Promise<void> {
     if (res.error === "accounts_username_key") {
       ctx.status = 409;
       ctx.body = "Username taken";
+      return;
     } else if (res.error === "accounts_email_key") {
       ctx.status = 409;
       ctx.body = "Email taken";
+      return;
     }
-
-    return;
   }
 
   ctx.status = 500;

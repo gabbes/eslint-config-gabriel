@@ -16,9 +16,8 @@ export async function account(
     if (res.error === "not_found") {
       ctx.status = 400;
       ctx.body = "Account not found";
+      return;
     }
-
-    return;
   }
 
   ctx.status = 500;
