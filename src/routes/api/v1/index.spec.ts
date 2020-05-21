@@ -41,18 +41,18 @@ async function assertAccountInputAndJsonResponseMatchDatabase(
   assert.ok(rows[0].created instanceof Date);
 }
 
-function assertBasicAuth(): void {
+/* eslint-disable no-unexpected-multiline */
+
+function assertBasicAuth(url: string, method: "get" | "post" = "get"): void {
   it("requires basic auth", async () => {
-    const res = await request(app.callback())
-      .get("/api/v1/account")
-      .expect(401);
+    const res = await request(app.callback())[method](url).expect(401);
 
     assert.equal(res.text, "Basic authentication required");
   });
 
   it("requires basic auth username", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account")
+      [method](url)
       .auth("", "x")
       .expect(401);
 
@@ -61,7 +61,7 @@ function assertBasicAuth(): void {
 
   it("requires basic auth password", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account")
+      [method](url)
       .auth("x", "")
       .expect(401);
 
@@ -70,13 +70,15 @@ function assertBasicAuth(): void {
 
   it("requires valid basic auth", async () => {
     const res = await request(app.callback())
-      .get("/api/v1/account")
+      [method](url)
       .auth("x", "x")
       .expect(401);
 
     assert.equal(res.text, "Unauthorized");
   });
 }
+
+/* eslint-enable no-unexpected-multiline */
 
 describe("api/v1", () => {
   before(async () => {
@@ -88,7 +90,7 @@ describe("api/v1", () => {
     await pool.query("DELETE FROM accounts;");
   });
 
-  describe("api/v1/register", () => {
+  describe("register", () => {
     it("requires input username and password", async () => {
       const res = await request(app.callback())
         .post("/api/v1/register")
@@ -227,8 +229,8 @@ describe("api/v1", () => {
     });
   });
 
-  describe("api/v1/account", () => {
-    assertBasicAuth();
+  describe("account", () => {
+    assertBasicAuth("/api/v1/account");
 
     it("authenticates account", async () => {
       const input = { username: "gabriel", password: "password" };
@@ -247,8 +249,8 @@ describe("api/v1", () => {
     });
   });
 
-  describe("api/v1/account/update", () => {
-    assertBasicAuth();
+  describe("account/update", () => {
+    assertBasicAuth("/api/v1/account/update", "post");
 
     it("requires input body", async () => {
       const input = { username: "gabriel", password: "password" };
@@ -625,8 +627,8 @@ describe("api/v1", () => {
     });
   });
 
-  describe("api/v1/remove", () => {
-    assertBasicAuth();
+  describe("account/remove", () => {
+    assertBasicAuth("/api/v1/account/remove", "post");
 
     it("removes account", async () => {
       const input = { username: "gabriel", password: "password" };
