@@ -80,7 +80,7 @@ function assertBasicAuth(url: string, method: "get" | "post" = "get"): void {
 
 /* eslint-enable no-unexpected-multiline */
 
-describe("api/v1", () => {
+describe("api/v1/user", () => {
   before(async () => {
     await migratorosaurus(pool, { target: "0-create.sql" });
     await migratorosaurus(pool);
@@ -90,10 +90,10 @@ describe("api/v1", () => {
     await pool.query("DELETE FROM accounts;");
   });
 
-  describe("register", () => {
+  describe("create", () => {
     it("requires input username and password", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .expect(400);
 
       assert.equal(res.text, "Username and password required");
@@ -101,7 +101,7 @@ describe("api/v1", () => {
 
     it("requires input username", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ password: "password" })
         .expect(400);
 
@@ -110,7 +110,7 @@ describe("api/v1", () => {
 
     it("requires input password", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "gabriel" })
         .expect(400);
 
@@ -119,7 +119,7 @@ describe("api/v1", () => {
 
     it("requires input username to be minimum 2 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "x", password: "password" })
         .expect(400);
 
@@ -128,7 +128,7 @@ describe("api/v1", () => {
 
     it("requires input username to be maximum 18 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "x".repeat(19), password: "password" })
         .expect(400);
 
@@ -137,7 +137,7 @@ describe("api/v1", () => {
 
     it("requires input username to only contain valid characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "gåbriäl", password: "password" })
         .expect(400);
 
@@ -146,7 +146,7 @@ describe("api/v1", () => {
 
     it("requires input password to be minumum 6 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "gabriel", password: "x".repeat(5) })
         .expect(400);
 
@@ -155,7 +155,7 @@ describe("api/v1", () => {
 
     it("requires input email to follow valid format", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({ username: "gabriel", password: "password", email: "x@x" })
         .expect(400);
 
@@ -166,7 +166,7 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
@@ -182,7 +182,7 @@ describe("api/v1", () => {
       };
 
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
@@ -194,12 +194,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(409);
 
@@ -208,7 +208,7 @@ describe("api/v1", () => {
 
     it("requires email to be unique", async () => {
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({
           username: "gabriel",
           password: "password",
@@ -217,7 +217,7 @@ describe("api/v1", () => {
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send({
           username: "gabriel2",
           password: "password",
@@ -229,19 +229,19 @@ describe("api/v1", () => {
     });
   });
 
-  describe("account", () => {
-    assertBasicAuth("/api/v1/account");
+  describe("read", () => {
+    assertBasicAuth("/api/v1/user");
 
     it("authenticates account", async () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .get("/api/v1/account")
+        .get("/api/v1/user")
         .auth(input.username, input.password)
         .expect(200);
 
@@ -249,19 +249,19 @@ describe("api/v1", () => {
     });
   });
 
-  describe("account/update", () => {
-    assertBasicAuth("/api/v1/account/update", "post");
+  describe("update", () => {
+    assertBasicAuth("/api/v1/user/update", "post");
 
     it("requires input body", async () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .expect(400);
 
@@ -272,12 +272,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({})
         .expect(400);
@@ -289,12 +289,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ favoriteFood: "pancakes" })
         .expect(400);
@@ -306,12 +306,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ username: "x" })
         .expect(400);
@@ -323,12 +323,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ username: "x".repeat(19) })
         .expect(400);
@@ -340,12 +340,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ username: "gabriäl" })
         .expect(400);
@@ -357,12 +357,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ password: "x".repeat(2) })
         .expect(400);
@@ -374,12 +374,12 @@ describe("api/v1", () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ email: "x@x" })
         .expect(400);
@@ -393,17 +393,17 @@ describe("api/v1", () => {
       const input2 = { username: "franz", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input2)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ username: input2.username })
         .expect(409);
@@ -421,17 +421,17 @@ describe("api/v1", () => {
       };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input2)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send({ email: input2.email })
         .expect(409);
@@ -444,12 +444,12 @@ describe("api/v1", () => {
       const body = { username: "gabbe" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -470,12 +470,12 @@ describe("api/v1", () => {
       const body = { password: "drowssap" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -490,12 +490,12 @@ describe("api/v1", () => {
       const body = { email: "gabriel@mail.com" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -515,12 +515,12 @@ describe("api/v1", () => {
       const body = { email: "gabbe@mail.com" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -546,12 +546,12 @@ describe("api/v1", () => {
       const body = { email: null };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -581,12 +581,12 @@ describe("api/v1", () => {
       };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(body)
         .expect(200);
@@ -612,12 +612,12 @@ describe("api/v1", () => {
       };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/account/update")
+        .post("/api/v1/user/update")
         .auth(input.username, input.password)
         .send(input)
         .expect(200);
@@ -627,19 +627,19 @@ describe("api/v1", () => {
     });
   });
 
-  describe("account/remove", () => {
-    assertBasicAuth("/api/v1/account/remove", "post");
+  describe("delete", () => {
+    assertBasicAuth("/api/v1/user/delete", "post");
 
     it("removes account", async () => {
       const input = { username: "gabriel", password: "password" };
 
       await request(app.callback())
-        .post("/api/v1/register")
+        .post("/api/v1/user")
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/account/remove")
+        .post("/api/v1/user/delete")
         .auth(input.username, input.password)
         .expect(204);
 

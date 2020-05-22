@@ -1,13 +1,13 @@
-import * as basicAuth from "basic-auth";
+import * as getContextUser from "basic-auth";
 import type { Next, ParameterizedContext } from "koa";
-import { queries } from "../../../../database";
+import { queries } from "../../../database";
 
-export async function authenticate(
+export async function basicAuth(
   ctx: ParameterizedContext,
   next: Next
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const user = basicAuth(ctx as any);
+  const user = getContextUser(ctx as any);
 
   if (!user || (!user.name && !user.pass)) {
     ctx.status = 401;
@@ -37,12 +37,10 @@ export async function authenticate(
     return await next();
   }
 
-  if (res.error) {
-    if (res.error === "not_found") {
-      ctx.status = 401;
-      ctx.body = "Unauthorized";
-      return;
-    }
+  if (res.error === "not_found") {
+    ctx.status = 401;
+    ctx.body = "Unauthorized";
+    return;
   }
 
   ctx.status = 500;

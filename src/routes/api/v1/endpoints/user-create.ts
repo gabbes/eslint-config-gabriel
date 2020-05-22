@@ -1,14 +1,17 @@
 import type { ParameterizedContext } from "koa";
-import { queries } from "../../../database";
+import { queries } from "../../../../database";
 
-interface RegisterBody {
+const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+const emailRegex = /\S+@\S+\.\S+/;
+
+interface Body {
   username?: string;
   password?: string;
   email?: string;
 }
 
-export async function register(ctx: ParameterizedContext): Promise<void> {
-  const body: RegisterBody = ctx.request.body;
+export async function userCreate(ctx: ParameterizedContext): Promise<void> {
+  const body: Body = ctx.request.body;
 
   if (!body.username && !body.password) {
     ctx.status = 400;
@@ -31,7 +34,7 @@ export async function register(ctx: ParameterizedContext): Promise<void> {
   if (
     body.username.length < 2 ||
     body.username.length > 18 ||
-    !body.username.match(/^[a-zA-Z][a-zA-Z0-9_]*$/)
+    !body.username.match(usernameRegex)
   ) {
     ctx.status = 400;
     ctx.body = "Invalid username input";
@@ -44,7 +47,7 @@ export async function register(ctx: ParameterizedContext): Promise<void> {
     return;
   }
 
-  if (body.email && !body.email.match(/\S+@\S+\.\S+/)) {
+  if (body.email && !body.email.match(emailRegex)) {
     ctx.status = 400;
     ctx.body = "Invalid email";
     return;

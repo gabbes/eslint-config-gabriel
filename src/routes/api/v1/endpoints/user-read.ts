@@ -1,7 +1,7 @@
 import type { ParameterizedContext } from "koa";
-import { queries } from "../../../database";
+import { queries } from "../../../../database";
 
-export async function account(
+export async function userRead(
   ctx: ParameterizedContext<{ accountId: string }>
 ): Promise<void> {
   const res = await queries.getAccount({ id: ctx.state.accountId });
@@ -12,12 +12,10 @@ export async function account(
     return;
   }
 
-  if (res.error) {
-    if (res.error === "not_found") {
-      ctx.status = 400;
-      ctx.body = "Account not found";
-      return;
-    }
+  if (res.error === "not_found") {
+    ctx.status = 400;
+    ctx.body = "Account not found";
+    return;
   }
 
   ctx.status = 500;

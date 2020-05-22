@@ -1,17 +1,15 @@
 import * as Router from "koa-router";
 import * as mount from "koa-mount";
-import { account } from "./account";
-import { register } from "./register";
-import { remove } from "./remove";
-import { update } from "./update";
-import { authenticate } from "./utils";
+import * as endpoints from "./endpoints";
+import { basicAuth } from "./basic-auth";
 
 export const router = new Router();
 
-router.post("/api/v1/register", register);
+router.post("/api/v1/user", endpoints.userCreate);
 
-router.use(mount("/api/v1/account", authenticate));
+// Require authentication for /user endpoints below
+router.use(mount("/api/v1/user", basicAuth));
 
-router.get("/api/v1/account", account);
-router.post("/api/v1/account/remove", remove);
-router.post("/api/v1/account/update", update);
+router.get("/api/v1/user", endpoints.userRead);
+router.post("/api/v1/user/delete", endpoints.userDelete);
+router.post("/api/v1/user/update", endpoints.userUpdate);

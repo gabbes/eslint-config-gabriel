@@ -1,16 +1,16 @@
 import type { ParameterizedContext } from "koa";
-import { queries } from "../../../database";
+import { queries } from "../../../../database";
 
-interface UpdateBody {
+interface Body {
   username?: string;
   password?: string;
   email?: null | string;
 }
 
-export async function update(
+export async function userUpdate(
   ctx: ParameterizedContext<{ accountId: string }>
 ): Promise<void> {
-  const body: UpdateBody = ctx.request.body;
+  const body: Body = ctx.request.body;
 
   if (!body || (!body.username && !body.password && body.email === undefined)) {
     ctx.status = 400;
