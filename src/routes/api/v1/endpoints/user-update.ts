@@ -2,7 +2,7 @@ import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
 
 interface Body {
-  username?: string;
+  name?: string;
   password?: string;
   email?: null | string;
 }
@@ -12,7 +12,7 @@ export async function userUpdate(
 ): Promise<void> {
   const body: Body = ctx.request.body;
 
-  if (!body || (!body.username && !body.password && body.email === undefined)) {
+  if (!body || (!body.name && !body.password && body.email === undefined)) {
     ctx.status = 400;
     ctx.body = "Invalid input";
     return;
@@ -25,13 +25,13 @@ export async function userUpdate(
   }
 
   if (
-    body.username &&
-    (body.username.length < 2 ||
-      body.username.length > 18 ||
-      !body.username.match(/^[a-zA-Z][a-zA-Z0-9_]*$/))
+    body.name &&
+    (body.name.length < 2 ||
+      body.name.length > 18 ||
+      !body.name.match(/^[a-zA-Z][a-zA-Z0-9_]*$/))
   ) {
     ctx.status = 400;
-    ctx.body = "Invalid input username";
+    ctx.body = "Invalid input name";
     return;
   }
 
@@ -44,7 +44,7 @@ export async function userUpdate(
   const updateRes = await queries.updateAccount({
     id: ctx.state.accountId,
     input: {
-      username: body.username,
+      name: body.name,
       password: body.password,
       email: body.email,
     },
@@ -57,11 +57,11 @@ export async function userUpdate(
   }
 
   if (updateRes.error) {
-    if (updateRes.error === "accounts_username_key") {
+    if (updateRes.error === "users_name_key") {
       ctx.status = 409;
-      ctx.body = "Username taken";
+      ctx.body = "Name taken";
       return;
-    } else if (updateRes.error === "accounts_email_key") {
+    } else if (updateRes.error === "users_email_key") {
       ctx.status = 409;
       ctx.body = "Email taken";
       return;

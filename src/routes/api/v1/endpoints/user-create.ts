@@ -1,11 +1,11 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
 
-const usernameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const emailRegex = /\S+@\S+\.\S+/;
 
 interface Body {
-  username?: string;
+  name?: string;
   password?: string;
   email?: string;
 }
@@ -13,15 +13,15 @@ interface Body {
 export async function userCreate(ctx: ParameterizedContext): Promise<void> {
   const body: Body = ctx.request.body;
 
-  if (!body.username && !body.password) {
+  if (!body.name && !body.password) {
     ctx.status = 400;
-    ctx.body = "Username and password required";
+    ctx.body = "Name and password required";
     return;
   }
 
-  if (!body.username) {
+  if (!body.name) {
     ctx.status = 400;
-    ctx.body = "Username required";
+    ctx.body = "Name required";
     return;
   }
 
@@ -32,12 +32,12 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
   }
 
   if (
-    body.username.length < 2 ||
-    body.username.length > 18 ||
-    !body.username.match(usernameRegex)
+    body.name.length < 2 ||
+    body.name.length > 18 ||
+    !body.name.match(nameRegex)
   ) {
     ctx.status = 400;
-    ctx.body = "Invalid username input";
+    ctx.body = "Invalid name input";
     return;
   }
 
@@ -54,7 +54,7 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
   }
 
   const res = await queries.insertAccount({
-    username: body.username,
+    name: body.name,
     password: body.password,
     email: body.email,
   });
@@ -66,11 +66,11 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
   }
 
   if (res.error) {
-    if (res.error === "accounts_username_key") {
+    if (res.error === "users_name_key") {
       ctx.status = 409;
-      ctx.body = "Username taken";
+      ctx.body = "Name taken";
       return;
-    } else if (res.error === "accounts_email_key") {
+    } else if (res.error === "users_email_key") {
       ctx.status = 409;
       ctx.body = "Email taken";
       return;

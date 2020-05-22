@@ -8,31 +8,31 @@ type Query<T> =
 
 interface Account {
   id: number;
-  username: string;
+  name: string;
   email: null | string;
 }
 
 export async function insertAccount(args: {
-  username: string;
+  name: string;
   password: string;
   email?: string;
 }): Promise<Query<Account>> {
   try {
     const res = await pool.query<Account>(`
-      INSERT INTO accounts (
+      INSERT INTO users (
         id,
-        username,
+        name,
         password,
         ${args.email ? "email," : ""}
         created
       ) VALUES (
         '${uuid.v4()}',
-        '${args.username}',
+        '${args.name}',
         '${md5(args.password)}',
         ${args.email ? `'${args.email}',` : ""}
         NOW()
       )
-      RETURNING id, username, email;
+      RETURNING id, name, email;
     `);
 
     if (!res.rowCount) {
@@ -57,14 +57,14 @@ export async function insertAccount(args: {
 }
 
 export async function authenticateAccount(args: {
-  username: string;
+  name: string;
   password: string;
 }): Promise<Query<{ id: string }>> {
   try {
     const res = await pool.query<{ id: string }>(`
       SELECT id
-      FROM accounts
-      WHERE username = '${args.username}'
+      FROM users
+      WHERE name = '${args.name}'
       AND password = '${md5(args.password)}';
     `);
 
@@ -94,8 +94,8 @@ export async function getAccount(args: {
 }): Promise<Query<Account>> {
   try {
     const res = await pool.query<Account>(`
-      SELECT id, username, email
-      FROM accounts
+      SELECT id, name, email
+      FROM users
       WHERE id = '${args.id}';
     `);
 
@@ -123,7 +123,7 @@ export async function getAccount(args: {
 export async function updateAccount(args: {
   id: string;
   input: {
-    username?: string;
+    name?: string;
     password?: string;
     email?: null | string;
   };
@@ -141,10 +141,10 @@ export async function updateAccount(args: {
       .join(",");
 
     const res = await pool.query<Account>(`
-      UPDATE accounts
+      UPDATE users
       SET ${setValues}
       WHERE id = '${args.id}'
-      RETURNING id, username, email;
+      RETURNING id, name, email;
     `);
 
     if (!res.rowCount) {
@@ -173,7 +173,7 @@ export async function deleteAccount(args: {
 }): Promise<Query<null>> {
   try {
     await pool.query<Account>(`
-      DELETE FROM accounts
+      DELETE FROM users
       WHERE id = '${args.id}';
     `);
 

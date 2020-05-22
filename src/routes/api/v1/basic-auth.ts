@@ -17,7 +17,7 @@ export async function basicAuth(
 
   if (!user.name) {
     ctx.status = 401;
-    ctx.body = "Basic authentication username required";
+    ctx.body = "Basic authentication name required";
     return;
   }
 
@@ -28,7 +28,7 @@ export async function basicAuth(
   }
 
   const res = await queries.authenticateAccount({
-    username: user.name,
+    name: user.name,
     password: user.pass,
   });
 
