@@ -41,7 +41,7 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
     return;
   }
 
-  if (body.password.length < 6) {
+  if (body.password.length < 6 || body.password.length > 128) {
     ctx.status = 400;
     ctx.body = "Invalid password";
     return;

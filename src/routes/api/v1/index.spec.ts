@@ -153,6 +153,15 @@ describe("api/v1/user", () => {
       assert.equal(res.text, "Invalid password");
     });
 
+    it("requires input password to be maximum 128 characters", async () => {
+      const res = await request(app.callback())
+        .post("/api/v1/user")
+        .send({ name: "gabriel", password: "x".repeat(129) })
+        .expect(400);
+
+      assert.equal(res.text, "Invalid password");
+    });
+
     it("requires input email to follow valid format", async () => {
       const res = await request(app.callback())
         .post("/api/v1/user")
@@ -365,6 +374,23 @@ describe("api/v1/user", () => {
         .post("/api/v1/user/update")
         .auth(input.name, input.password)
         .send({ password: "x".repeat(2) })
+        .expect(400);
+
+      assert.equal(res.text, "Invalid input password");
+    });
+
+    it("requires input body password to be maximum 128 characters", async () => {
+      const input = { name: "gabriel", password: "password" };
+
+      await request(app.callback())
+        .post("/api/v1/user")
+        .send(input)
+        .expect(201);
+
+      const res = await request(app.callback())
+        .post("/api/v1/user/update")
+        .auth(input.name, input.password)
+        .send({ password: "x".repeat(129) })
         .expect(400);
 
       assert.equal(res.text, "Invalid input password");

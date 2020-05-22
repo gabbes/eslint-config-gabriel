@@ -18,7 +18,10 @@ export async function userUpdate(
     return;
   }
 
-  if (body.password && body.password.length < 6) {
+  if (
+    body.password &&
+    (body.password.length < 6 || body.password.length > 128)
+  ) {
     ctx.status = 400;
     ctx.body = "Invalid input password";
     return;
