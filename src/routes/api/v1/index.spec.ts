@@ -5,6 +5,7 @@ import { migratorosaurus } from "migratorosaurus";
 import * as request from "supertest";
 import { app } from "../../../app";
 import { pool } from "../../../database";
+import { Endpoint, ErrorCode } from "./constants";
 
 interface Input {
   name: string;
@@ -45,11 +46,11 @@ async function assertAccountInputAndJsonResponseMatchDatabase(
   assert.ok(rows[0].created instanceof Date);
 }
 
-function assertJWT(url: string): void {
+function assertJWT(url: Endpoint): void {
   it("requires authorization header", async () => {
     const { text } = await request(app.callback()).post(url).expect(401);
 
-    assert.equal(text, "JWT required");
+    assert.equal(text, ErrorCode.JsonWebTokenRequired);
   });
 
   it("requires authorization header jwt token", async () => {
@@ -58,7 +59,7 @@ function assertJWT(url: string): void {
       .set("Authorization", "Bearer xxx")
       .expect(401);
 
-    assert.equal(text, "Invalid JWT");
+    assert.equal(text, ErrorCode.JsonWebTokenInvalid);
   });
 }
 
@@ -74,90 +75,88 @@ describe("api/v1/user", () => {
 
   describe("create", () => {
     it("requires input name and password", async () => {
-      const res = await request(app.callback())
-        .post("/api/v1/user")
-        .expect(400);
+      const res = await request(app.callback()).post(Endpoint.User).expect(400);
 
-      assert.equal(res.text, "Name and password required");
+      assert.equal(res.text, ErrorCode.UserNameAndPasswordRequired);
     });
 
     it("requires input name", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ password: "password" })
         .expect(400);
 
-      assert.equal(res.text, "Name required");
+      assert.equal(res.text, ErrorCode.UserNameRequired);
     });
 
     it("requires input password", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "gabriel" })
         .expect(400);
 
-      assert.equal(res.text, "Password required");
+      assert.equal(res.text, ErrorCode.UserPasswordRequired);
     });
 
     it("requires input name to be minimum 2 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "x", password: "password" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid name input");
+      assert.equal(res.text, ErrorCode.UserNameMinimum2Characters);
     });
 
     it("requires input name to be maximum 18 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "x".repeat(19), password: "password" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid name input");
+      assert.equal(res.text, ErrorCode.UserNameMaximum18Characters);
     });
 
     it("requires input name to only contain valid characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "gåbriäl", password: "password" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid name input");
+      assert.equal(res.text, ErrorCode.UserNameContainsInvalidCharacters);
     });
 
     it("requires input password to be minumum 6 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "gabriel", password: "x".repeat(5) })
         .expect(400);
 
-      assert.equal(res.text, "Invalid password");
+      assert.equal(res.text, ErrorCode.UserPasswordMinimum6Characters);
     });
 
     it("requires input password to be maximum 128 characters", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "gabriel", password: "x".repeat(129) })
         .expect(400);
 
-      assert.equal(res.text, "Invalid password");
+      assert.equal(res.text, ErrorCode.UserPasswordMaximum128Characters);
     });
 
     it("requires input email to follow valid format", async () => {
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({ name: "gabriel", password: "password", email: "x@x" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid email");
+      assert.equal(res.text, ErrorCode.UserEmailInvalidFormat);
     });
 
     it("registers account without email", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
@@ -173,7 +172,7 @@ describe("api/v1/user", () => {
       };
 
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
@@ -184,22 +183,19 @@ describe("api/v1/user", () => {
     it("requires name to be unique", async () => {
       const input = { name: "gabriel", password: "password" };
 
-      await request(app.callback())
-        .post("/api/v1/user")
-        .send(input)
-        .expect(201);
+      await request(app.callback()).post(Endpoint.User).send(input).expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(409);
 
-      assert.equal(res.text, "Name taken");
+      assert.equal(res.text, ErrorCode.UserNameTaken);
     });
 
     it("requires email to be unique", async () => {
       await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({
           name: "gabriel",
           password: "password",
@@ -208,7 +204,7 @@ describe("api/v1/user", () => {
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send({
           name: "gabriel2",
           password: "password",
@@ -216,54 +212,33 @@ describe("api/v1/user", () => {
         })
         .expect(409);
 
-      assert.equal(res.text, "Email taken");
+      assert.equal(res.text, ErrorCode.UserEmailTaken);
     });
   });
 
   describe("read", () => {
     it("requires basic auth", async () => {
-      const res = await request(app.callback()).get("/api/v1/user").expect(401);
+      const res = await request(app.callback()).get(Endpoint.User).expect(401);
 
-      assert.equal(res.text, "Basic authentication required");
+      assert.equal(res.text, ErrorCode.BasicAuthRequired);
     });
 
-    it("requires basic auth name", async () => {
+    it("requires basic auth matching a user", async () => {
       const res = await request(app.callback())
-        .get("/api/v1/user")
-        .auth("", "x")
-        .expect(401);
-
-      assert.equal(res.text, "Basic authentication name required");
-    });
-
-    it("requires basic auth password", async () => {
-      const res = await request(app.callback())
-        .get("/api/v1/user")
-        .auth("x", "")
-        .expect(401);
-
-      assert.equal(res.text, "Basic authentication password required");
-    });
-
-    it("requires valid basic auth", async () => {
-      const res = await request(app.callback())
-        .get("/api/v1/user")
+        .get(Endpoint.User)
         .auth("x", "x")
         .expect(401);
 
-      assert.equal(res.text, "Unauthorized");
+      assert.equal(res.text, ErrorCode.UserNotFound);
     });
 
     it("authenticates account", async () => {
       const input = { name: "gabriel", password: "password" };
 
-      await request(app.callback())
-        .post("/api/v1/user")
-        .send(input)
-        .expect(201);
+      await request(app.callback()).post(Endpoint.User).send(input).expect(201);
 
       const { text } = await request(app.callback())
-        .get("/api/v1/user")
+        .get(Endpoint.User)
         .auth(input.name, input.password)
         .expect(200);
 
@@ -273,158 +248,158 @@ describe("api/v1/user", () => {
   });
 
   describe("update", () => {
-    assertJWT("/api/v1/user/update");
+    assertJWT(Endpoint.UserUpdate);
 
     it("requires input body", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .expect(400);
 
-      assert.equal(res.text, "Invalid input");
+      assert.equal(res.text, ErrorCode.InvalidBody);
     });
 
     it("requires input body to not be empty", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({})
         .expect(400);
 
-      assert.equal(res.text, "Invalid input");
+      assert.equal(res.text, ErrorCode.InvalidBody);
     });
 
     it("requires input body to contain valid field", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ favoriteFood: "pancakes" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input");
+      assert.equal(res.text, ErrorCode.InvalidBody);
     });
 
     it("requires input body name to be minimum 2 characters", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ name: "x" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input name");
+      assert.equal(res.text, ErrorCode.UserNameMinimum2Characters);
     });
 
     it("requires input body name to be maximum 18 characters", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ name: "x".repeat(19) })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input name");
+      assert.equal(res.text, ErrorCode.UserNameMaximum18Characters);
     });
 
     it("requires input body name to only contain valid characters", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ name: "gabriäl" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input name");
+      assert.equal(res.text, ErrorCode.UserNameContainsInvalidCharacters);
     });
 
     it("requires input body password to be minumum 6 characters", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ password: "x".repeat(2) })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input password");
+      assert.equal(res.text, ErrorCode.UserPasswordMinimum6Characters);
     });
 
     it("requires input body password to be maximum 128 characters", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ password: "x".repeat(129) })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input password");
+      assert.equal(res.text, ErrorCode.UserPasswordMaximum128Characters);
     });
 
     it("requires input body email to follow valid format", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ email: "x@x" })
         .expect(400);
 
-      assert.equal(res.text, "Invalid input email");
+      assert.equal(res.text, ErrorCode.UserEmailInvalidFormat);
     });
 
     it("requires input body name to be unique", async () => {
@@ -433,22 +408,22 @@ describe("api/v1/user", () => {
       const input2 = { name: "franz", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input2)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ name: input2.name })
         .expect(409);
 
-      assert.equal(res.text, "Name taken");
+      assert.equal(res.text, ErrorCode.UserNameTaken);
     });
 
     it("requires input body email to be unique", async () => {
@@ -461,22 +436,22 @@ describe("api/v1/user", () => {
       };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input2)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send({ email: input2.email })
         .expect(409);
 
-      assert.equal(res.text, "Email taken");
+      assert.equal(res.text, ErrorCode.UserEmailTaken);
     });
 
     it("updates account name", async () => {
@@ -484,12 +459,12 @@ describe("api/v1/user", () => {
       const body = { name: "gabbe" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send(body)
         .expect(200);
@@ -510,12 +485,12 @@ describe("api/v1/user", () => {
       const body = { password: "drowssap" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       const res = await request(app.callback())
-        .post("/api/v1/user/update")
+        .post(Endpoint.UserUpdate)
         .set("Authorization", `Bearer ${text}`)
         .send(body)
         .expect(200);
@@ -531,12 +506,12 @@ describe("api/v1/user", () => {
     const body = { email: "gabriel@mail.com" };
 
     const { text } = await request(app.callback())
-      .post("/api/v1/user")
+      .post(Endpoint.User)
       .send(input)
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/user/update")
+      .post(Endpoint.UserUpdate)
       .set("Authorization", `Bearer ${text}`)
       .send(body)
       .expect(200);
@@ -556,12 +531,12 @@ describe("api/v1/user", () => {
     const body = { email: "gabbe@mail.com" };
 
     const { text } = await request(app.callback())
-      .post("/api/v1/user")
+      .post(Endpoint.User)
       .send(input)
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/user/update")
+      .post(Endpoint.UserUpdate)
       .set("Authorization", `Bearer ${text}`)
       .send(body)
       .expect(200);
@@ -587,12 +562,12 @@ describe("api/v1/user", () => {
     const body = { email: null };
 
     const { text } = await request(app.callback())
-      .post("/api/v1/user")
+      .post(Endpoint.User)
       .send(input)
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/user/update")
+      .post(Endpoint.UserUpdate)
       .set("Authorization", `Bearer ${text}`)
       .send(body)
       .expect(200);
@@ -622,12 +597,12 @@ describe("api/v1/user", () => {
     };
 
     const { text } = await request(app.callback())
-      .post("/api/v1/user")
+      .post(Endpoint.User)
       .send(input)
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/user/update")
+      .post(Endpoint.UserUpdate)
       .set("Authorization", `Bearer ${text}`)
       .send(body)
       .expect(200);
@@ -654,12 +629,12 @@ describe("api/v1/user", () => {
     };
 
     const { text } = await request(app.callback())
-      .post("/api/v1/user")
+      .post(Endpoint.User)
       .send(input)
       .expect(201);
 
     const res = await request(app.callback())
-      .post("/api/v1/user/update")
+      .post(Endpoint.UserUpdate)
       .set("Authorization", `Bearer ${text}`)
       .send(input)
       .expect(200);
@@ -669,18 +644,18 @@ describe("api/v1/user", () => {
   });
 
   describe("delete", () => {
-    assertJWT("/api/v1/user/delete");
+    assertJWT(Endpoint.UserDelete);
 
     it("deletes account", async () => {
       const input = { name: "gabriel", password: "password" };
 
       const { text } = await request(app.callback())
-        .post("/api/v1/user")
+        .post(Endpoint.User)
         .send(input)
         .expect(201);
 
       await request(app.callback())
-        .post("/api/v1/user/delete")
+        .post(Endpoint.UserDelete)
         .set("Authorization", `Bearer ${text}`)
         .expect(204);
 

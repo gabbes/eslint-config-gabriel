@@ -1,9 +1,7 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
+import { ErrorCode, validEmailRegex, validNameRegex } from "../constants";
 import * as jwt from "../jwt";
-
-const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-const emailRegex = /\S+@\S+\.\S+/;
 
 interface Body {
   name?: string;
@@ -18,33 +16,46 @@ export async function userUpdate(
 
   if (!body || (!body.name && !body.password && body.email === undefined)) {
     ctx.status = 400;
-    ctx.body = "Invalid input";
+    ctx.body = ErrorCode.InvalidBody;
     return;
   }
+  if (body.name) {
+    if (body.name.length < 2) {
+      ctx.status = 400;
+      ctx.body = ErrorCode.UserNameMinimum2Characters;
+      return;
+    }
 
-  if (
-    body.password &&
-    (body.password.length < 6 || body.password.length > 128)
-  ) {
-    ctx.status = 400;
-    ctx.body = "Invalid input password";
-    return;
+    if (body.name.length > 18) {
+      ctx.status = 400;
+      ctx.body = ErrorCode.UserNameMaximum18Characters;
+      return;
+    }
+
+    if (!body.name.match(validNameRegex)) {
+      ctx.status = 400;
+      ctx.body = ErrorCode.UserNameContainsInvalidCharacters;
+      return;
+    }
   }
 
-  if (
-    body.name &&
-    (body.name.length < 2 ||
-      body.name.length > 18 ||
-      !body.name.match(nameRegex))
-  ) {
-    ctx.status = 400;
-    ctx.body = "Invalid input name";
-    return;
+  if (body.password) {
+    if (body.password.length < 6) {
+      ctx.status = 400;
+      ctx.body = ErrorCode.UserPasswordMinimum6Characters;
+      return;
+    }
+
+    if (body.password.length > 128) {
+      ctx.status = 400;
+      ctx.body = ErrorCode.UserPasswordMaximum128Characters;
+      return;
+    }
   }
 
-  if (body.email && !body.email.match(emailRegex)) {
+  if (body.email && !body.email.match(validEmailRegex)) {
     ctx.status = 400;
-    ctx.body = "Invalid input email";
+    ctx.body = ErrorCode.UserEmailInvalidFormat;
     return;
   }
 
@@ -66,15 +77,15 @@ export async function userUpdate(
   if (updateRes.error) {
     if (updateRes.error === "users_name_key") {
       ctx.status = 409;
-      ctx.body = "Name taken";
+      ctx.body = ErrorCode.UserNameTaken;
       return;
     } else if (updateRes.error === "users_email_key") {
       ctx.status = 409;
-      ctx.body = "Email taken";
+      ctx.body = ErrorCode.UserEmailTaken;
       return;
     }
   }
 
   ctx.status = 500;
-  ctx.body = "Internal server error";
+  ctx.body = ErrorCode.UnexpectedError;
 }

@@ -1,5 +1,6 @@
 import type { Next, ParameterizedContext } from "koa";
 import * as jsonwebtoken from "jsonwebtoken";
+import { ErrorCode } from "./constants";
 
 const bearerRegex = /^Bearer /;
 
@@ -26,7 +27,7 @@ export async function jwt(
 ): Promise<void> {
   if (!ctx.header.authorization) {
     ctx.status = 401;
-    ctx.body = "JWT required";
+    ctx.body = ErrorCode.JsonWebTokenRequired;
     return;
   }
 
@@ -42,11 +43,11 @@ export async function jwt(
     }
   } catch (error) {
     ctx.status = 401;
-    ctx.body = "Invalid JWT";
+    ctx.body = ErrorCode.JsonWebTokenInvalid;
     return;
   }
 
   ctx.status = 500;
-  ctx.body = "Internal server error";
+  ctx.body = ErrorCode.UnexpectedError;
   return;
 }

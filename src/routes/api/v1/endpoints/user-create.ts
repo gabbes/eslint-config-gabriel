@@ -1,9 +1,7 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
+import { ErrorCode, validEmailRegex, validNameRegex } from "../constants";
 import * as jwt from "../jwt";
-
-const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-const emailRegex = /\S+@\S+\.\S+/;
 
 interface Body {
   name?: string;
@@ -16,41 +14,55 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
 
   if (!body.name && !body.password) {
     ctx.status = 400;
-    ctx.body = "Name and password required";
+    ctx.body = ErrorCode.UserNameAndPasswordRequired;
     return;
   }
 
   if (!body.name) {
     ctx.status = 400;
-    ctx.body = "Name required";
+    ctx.body = ErrorCode.UserNameRequired;
     return;
   }
 
   if (!body.password) {
     ctx.status = 400;
-    ctx.body = "Password required";
+    ctx.body = ErrorCode.UserPasswordRequired;
     return;
   }
 
-  if (
-    body.name.length < 2 ||
-    body.name.length > 18 ||
-    !body.name.match(nameRegex)
-  ) {
+  if (body.name.length < 2) {
     ctx.status = 400;
-    ctx.body = "Invalid name input";
+    ctx.body = ErrorCode.UserNameMinimum2Characters;
     return;
   }
 
-  if (body.password.length < 6 || body.password.length > 128) {
+  if (body.name.length > 18) {
     ctx.status = 400;
-    ctx.body = "Invalid password";
+    ctx.body = ErrorCode.UserNameMaximum18Characters;
     return;
   }
 
-  if (body.email && !body.email.match(emailRegex)) {
+  if (!body.name.match(validNameRegex)) {
     ctx.status = 400;
-    ctx.body = "Invalid email";
+    ctx.body = ErrorCode.UserNameContainsInvalidCharacters;
+    return;
+  }
+
+  if (body.password.length < 6) {
+    ctx.status = 400;
+    ctx.body = ErrorCode.UserPasswordMinimum6Characters;
+    return;
+  }
+
+  if (body.password.length > 128) {
+    ctx.status = 400;
+    ctx.body = ErrorCode.UserPasswordMaximum128Characters;
+    return;
+  }
+
+  if (body.email && !body.email.match(validEmailRegex)) {
+    ctx.status = 400;
+    ctx.body = ErrorCode.UserEmailInvalidFormat;
     return;
   }
 
@@ -69,15 +81,15 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
   if (res.error) {
     if (res.error === "users_name_key") {
       ctx.status = 409;
-      ctx.body = "Name taken";
+      ctx.body = ErrorCode.UserNameTaken;
       return;
     } else if (res.error === "users_email_key") {
       ctx.status = 409;
-      ctx.body = "Email taken";
+      ctx.body = ErrorCode.UserEmailTaken;
       return;
     }
   }
 
   ctx.status = 500;
-  ctx.body = "Internal server error";
+  ctx.body = ErrorCode.UnexpectedError;
 }

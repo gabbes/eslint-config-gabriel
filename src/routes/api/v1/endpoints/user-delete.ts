@@ -1,5 +1,6 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
+import { ErrorCode } from "../constants";
 
 export async function userDelete(
   ctx: ParameterizedContext<{ userId: string }>
@@ -12,5 +13,5 @@ export async function userDelete(
   }
 
   ctx.status = 500;
-  ctx.body = "Internal server error";
+  ctx.body = ErrorCode.UnexpectedError;
 }
