@@ -1,5 +1,6 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
+import * as jwt from "../jwt";
 
 const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 const emailRegex = /\S+@\S+\.\S+/;
@@ -53,7 +54,7 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
     return;
   }
 
-  const res = await queries.insertAccount({
+  const res = await queries.createUser({
     name: body.name,
     password: body.password,
     email: body.email,
@@ -61,7 +62,7 @@ export async function userCreate(ctx: ParameterizedContext): Promise<void> {
 
   if (res.ok) {
     ctx.status = 201;
-    ctx.body = JSON.stringify(res.data);
+    ctx.body = jwt.sign(res.data);
     return;
   }
 

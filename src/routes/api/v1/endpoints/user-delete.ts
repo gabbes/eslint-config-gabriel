@@ -2,9 +2,9 @@ import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
 
 export async function userDelete(
-  ctx: ParameterizedContext<{ accountId: string }>
+  ctx: ParameterizedContext<{ userId: string }>
 ): Promise<void> {
-  const res = await queries.deleteAccount({ id: ctx.state.accountId });
+  const res = await queries.deleteUser({ id: ctx.state.userId });
 
   if (res.ok) {
     ctx.status = 204;

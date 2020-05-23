@@ -1,5 +1,9 @@
 import type { ParameterizedContext } from "koa";
 import { queries } from "../../../../database";
+import * as jwt from "../jwt";
+
+const nameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+const emailRegex = /\S+@\S+\.\S+/;
 
 interface Body {
   name?: string;
@@ -8,7 +12,7 @@ interface Body {
 }
 
 export async function userUpdate(
-  ctx: ParameterizedContext<{ accountId: string }>
+  ctx: ParameterizedContext<{ userId: string }>
 ): Promise<void> {
   const body: Body = ctx.request.body;
 
@@ -31,21 +35,21 @@ export async function userUpdate(
     body.name &&
     (body.name.length < 2 ||
       body.name.length > 18 ||
-      !body.name.match(/^[a-zA-Z][a-zA-Z0-9_]*$/))
+      !body.name.match(nameRegex))
   ) {
     ctx.status = 400;
     ctx.body = "Invalid input name";
     return;
   }
 
-  if (body.email && !body.email.match(/\S+@\S+\.\S+/)) {
+  if (body.email && !body.email.match(emailRegex)) {
     ctx.status = 400;
     ctx.body = "Invalid input email";
     return;
   }
 
-  const updateRes = await queries.updateAccount({
-    id: ctx.state.accountId,
+  const updateRes = await queries.updateUser({
+    id: ctx.state.userId,
     input: {
       name: body.name,
       password: body.password,
@@ -55,7 +59,7 @@ export async function userUpdate(
 
   if (updateRes.ok) {
     ctx.status = 200;
-    ctx.body = JSON.stringify(updateRes.data);
+    ctx.body = jwt.sign(updateRes.data);
     return;
   }
 

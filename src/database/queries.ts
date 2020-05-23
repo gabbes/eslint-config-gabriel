@@ -6,30 +6,30 @@ type Query<T> =
   | { data: T; error: null; ok: true }
   | { data: null; error?: string; ok: false };
 
-interface Account {
-  id: number;
+interface User {
+  id: string;
   name: string;
   email: null | string;
 }
 
-export async function insertAccount(args: {
+export async function createUser(args: {
   name: string;
   password: string;
   email?: string;
-}): Promise<Query<Account>> {
+}): Promise<Query<User>> {
   try {
-    const res = await pool.query<Account>(`
+    const res = await pool.query<User>(`
       INSERT INTO users (
         id,
         name,
         password,
-        ${args.email ? "email," : ""}
+        email,
         created
       ) VALUES (
         '${uuid.v4()}',
         '${args.name}',
         '${md5(args.password)}',
-        ${args.email ? `'${args.email}',` : ""}
+        ${args.email ? `'${args.email}'` : "NULL"},
         NOW()
       )
       RETURNING id, name, email;
@@ -56,13 +56,13 @@ export async function insertAccount(args: {
   }
 }
 
-export async function authenticateAccount(args: {
+export async function readUser(args: {
   name: string;
   password: string;
-}): Promise<Query<{ id: string }>> {
+}): Promise<Query<User>> {
   try {
-    const res = await pool.query<{ id: string }>(`
-      SELECT id
+    const res = await pool.query<User>(`
+      SELECT id, name, email
       FROM users
       WHERE name = '${args.name}'
       AND password = '${md5(args.password)}';
@@ -89,45 +89,14 @@ export async function authenticateAccount(args: {
   }
 }
 
-export async function getAccount(args: {
-  id: string;
-}): Promise<Query<Account>> {
-  try {
-    const res = await pool.query<Account>(`
-      SELECT id, name, email
-      FROM users
-      WHERE id = '${args.id}';
-    `);
-
-    if (!res.rowCount) {
-      return {
-        data: null,
-        error: "not_found",
-        ok: false,
-      };
-    }
-
-    return {
-      data: res.rows[0],
-      error: null,
-      ok: true,
-    };
-  } catch (error) {
-    return {
-      data: null,
-      ok: false,
-    };
-  }
-}
-
-export async function updateAccount(args: {
+export async function updateUser(args: {
   id: string;
   input: {
     name?: string;
     password?: string;
     email?: null | string;
   };
-}): Promise<Query<Account>> {
+}): Promise<Query<User>> {
   try {
     if (args.input.password) {
       args.input.password = md5(args.input.password);
@@ -140,7 +109,7 @@ export async function updateAccount(args: {
       })
       .join(",");
 
-    const res = await pool.query<Account>(`
+    const res = await pool.query<User>(`
       UPDATE users
       SET ${setValues}
       WHERE id = '${args.id}'
@@ -168,11 +137,9 @@ export async function updateAccount(args: {
   }
 }
 
-export async function deleteAccount(args: {
-  id: string;
-}): Promise<Query<null>> {
+export async function deleteUser(args: { id: string }): Promise<Query<null>> {
   try {
-    await pool.query<Account>(`
+    await pool.query<User>(`
       DELETE FROM users
       WHERE id = '${args.id}';
     `);
